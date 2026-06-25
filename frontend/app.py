@@ -185,33 +185,39 @@ if page == "🔬 Predict":
         m2.metric("Risk Score", f"{risk:.3f}")
         m3.metric("Assessment Time", datetime.utcnow().strftime("%H:%M:%S UTC"))
 
-        # Feature contributions chart
-        st.markdown("#### Risk factor contributions")
-        contrib_df = pd.DataFrame({
-            "Feature": list(contribs.keys()),
-            "Contribution": list(contribs.values())
-        }).sort_values("Contribution", ascending=True)
-        contrib_df = contrib_df[contrib_df["Contribution"] != 0]
+        # Feature contributions (shown only if available)
+        if contribs:
+            st.markdown("#### Risk Factor Contributions")
 
-        if not contrib_df.empty:
-            colors = ["#d03b3b" if v > 0 else "#0ca30c" for v in contrib_df["Contribution"]]
-            fig = go.Figure(go.Bar(
-                x=contrib_df["Contribution"],
-                y=contrib_df["Feature"],
-                orientation="h",
-                marker_color=colors,
-            ))
-            fig.update_layout(
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                height=300,
-                margin=dict(l=10, r=10, t=10, b=10),
-                xaxis_title="Risk contribution",
-                font=dict(size=12, color="#52514e"),
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Feature contributions not available when using trained model (use SHAP for full explainability).")
+            contrib_df = pd.DataFrame({
+                "Feature": list(contribs.keys()),
+                "Contribution": list(contribs.values())
+            }).sort_values("Contribution", ascending=True)
+
+            contrib_df = contrib_df[contrib_df["Contribution"] != 0]
+
+            if not contrib_df.empty:
+                colors = [
+                    "#d03b3b" if v > 0 else "#0ca30c"
+                    for v in contrib_df["Contribution"]
+                ]
+
+                fig = go.Figure(go.Bar(
+                    x=contrib_df["Contribution"],
+                    y=contrib_df["Feature"],
+                    orientation="h",
+                    marker_color=colors,
+                ))
+
+                fig.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    height=300,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    xaxis_title="Contribution",
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
