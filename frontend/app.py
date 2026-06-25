@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 # ── Config ────────────────────────────────────────────────────────────────────
-API_URL = os.getenv("API_URL", "http://backend:8000")
+API_URL = os.getenv("API_URL", "https://medical-risk-prediction-platform.onrender.com")
 
 st.set_page_config(
     page_title="NovaGen Health Risk Classifier",
