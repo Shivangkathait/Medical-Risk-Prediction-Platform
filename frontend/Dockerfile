@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -14,8 +15,6 @@ COPY app.py .
 EXPOSE 8501
 
 ENV API_URL=http://backend:8000
-
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 CMD ["streamlit", "run", "app.py", \
      "--server.port=8501", \
