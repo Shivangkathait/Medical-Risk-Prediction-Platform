@@ -223,92 +223,6 @@ if page == "🔬 Predict":
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 2 — DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
-elif page == "📊 Dashboard":
-    st.title("Prediction Dashboard")
-    st.markdown("Historical overview of all predictions made via this system.")
-
-    try:
-        resp = requests.get(f"{API_URL}/history?limit=500", timeout=5)
-        data = resp.json()
-        history = data.get("history", [])
-    except Exception:
-        history = []
-
-    if not history:
-        st.info("No predictions yet. Run some predictions first.")
-        st.stop()
-
-    df = pd.DataFrame(history)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-    # KPIs
-    total = len(df)
-    healthy = (df["prediction"] == "Healthy").sum()
-    unhealthy = total - healthy
-    avg_risk = df["risk_score"].mean()
-
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Total Predictions", total)
-    k2.metric("Healthy", healthy, delta=f"{healthy/total*100:.0f}%")
-    k3.metric("At Risk", unhealthy, delta=f"{unhealthy/total*100:.0f}%", delta_color="inverse")
-    k4.metric("Avg Risk Score", f"{avg_risk:.3f}")
-
-    st.markdown("---")
-
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-        st.markdown("#### Prediction distribution")
-        fig_pie = px.pie(
-            names=["Healthy", "At Risk"],
-            values=[healthy, unhealthy],
-            color_discrete_sequence=["#0ca30c", "#d03b3b"],
-            hole=0.45,
-        )
-        fig_pie.update_layout(paper_bgcolor="white", margin=dict(t=10, b=10))
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-    with col_b:
-        st.markdown("#### Risk score distribution")
-        fig_hist = px.histogram(
-            df, x="risk_score", nbins=25,
-            color_discrete_sequence=["#2a78d6"],
-        )
-        fig_hist.update_layout(
-            paper_bgcolor="white", plot_bgcolor="white",
-            xaxis_title="Risk Score", yaxis_title="Count",
-            margin=dict(t=10, b=10),
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
-
-    # BMI vs Risk scatter
-    if "bmi" in df.columns:
-        st.markdown("#### BMI vs. Risk Score")
-        fig_sc = px.scatter(
-            df, x="bmi", y="risk_score",
-            color="prediction",
-            color_discrete_map={"Healthy": "#0ca30c", "Unhealthy": "#d03b3b"},
-            opacity=0.6,
-        )
-        fig_sc.update_layout(
-            paper_bgcolor="white", plot_bgcolor="white",
-            xaxis_title="BMI", yaxis_title="Risk Score",
-            margin=dict(t=10, b=10),
-        )
-        st.plotly_chart(fig_sc, use_container_width=True)
-
-    # Recent predictions table
-    st.markdown("#### Recent predictions")
-    display_cols = ["timestamp", "age", "bmi", "blood_pressure", "glucose_level", "prediction", "risk_score", "confidence"]
-    available = [c for c in display_cols if c in df.columns]
-    st.dataframe(df[available].tail(20).sort_values("timestamp", ascending=False), use_container_width=True)
-
-    if st.button("🗑 Clear history", type="secondary"):
-        requests.delete(f"{API_URL}/history")
-        st.success("History cleared.")
-        st.rerun()
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 3 — ABOUT
 # ══════════════════════════════════════════════════════════════════════════════
@@ -316,45 +230,70 @@ elif page == "ℹ️ About":
     st.title("About this Project")
 
     st.markdown("""
-    ## NovaGen Health Risk Classifier
+    ## 🧬 NovaGen Health Risk Classifier
 
-    A production-grade machine learning system built for **NovaGen Research Labs** to classify
-    individuals as **healthy** or **at risk** based on 22 physiological and lifestyle features.
+    A production-ready Machine Learning application for predicting patient health risk using a
+    **Random Forest Classifier** with a **FastAPI backend**, **Streamlit frontend**, and **Docker-based deployment**.
 
-    ### Architecture
-    | Layer | Technology | Role |
-    |---|---|---|
-    | **Model** | Random Forest (200 trees) | Core prediction engine |
-    | **API** | FastAPI + Uvicorn | RESTful prediction endpoint |
-    | **UI** | Streamlit | Interactive web interface |
-    | **Containers** | Docker + Docker Compose | Deployment & isolation |
+    ### 🏗 Architecture
 
-    ### Dataset
-    - **9,800 unique participants** across multiple observational studies
-    - **22 features**: physiological measurements, lifestyle factors, medical history
-    - **Target**: Binary (Healthy / Unhealthy)
+    | Layer | Technology | Purpose |
+    |-------|------------|----------|
+    | **Machine Learning** | Random Forest | Health risk prediction |
+    | **Backend API** | FastAPI + Uvicorn | REST API |
+    | **Frontend** | Streamlit | Interactive Dashboard |
+    | **Deployment** | Docker, Render, Streamlit Cloud | Production deployment |
 
-    ### Model Performance
+    ### 📊 Dataset
+
+    - **9,800+ health records**
+    - **22 clinical & lifestyle features**
+    - Binary Classification (**Healthy / At Risk**)
+
+    ### 🤖 Model Performance
+
     | Model | Accuracy | Recall |
-    |---|---|---|
-    | **Random Forest** ✅ | **93.7%** | **~95%** |
-    | Gradient Boosting | ~91% | ~91% |
-    | Voting Classifier | ~90% | ~90% |
-    | Logistic Regression | ~82% | ~80% |
-    | KNN (k=5) | ~79% | ~78% |
+    |------|---------:|-------:|
+    | ✅ Random Forest | **93.7%** | **95%** |
+    | Gradient Boosting | 91% | 91% |
+    | Voting Classifier | 90% | 90% |
+    | Logistic Regression | 82% | 80% |
+    | KNN | 79% | 78% |
 
-    > **Why recall?** In clinical screening, missing a high-risk patient (false negative)
-    > is more dangerous than a false alarm. Recall was the primary optimization metric.
+    > Higher Recall was prioritized because identifying high-risk patients is more important than minimizing false alarms.
 
-    ### API Endpoints
+    ### 🔌 API Endpoints
+
     | Method | Endpoint | Description |
-    |---|---|---|
-    | GET | `/` | API status |
-    | GET | `/health` | Health check |
-    | POST | `/predict` | Submit prediction |
-    | GET | `/history` | Fetch history |
-    | DELETE | `/history` | Clear history |
+    |--------|----------|-------------|
+    | GET | `/health` | API Health Check |
+    | POST | `/predict` | Predict Health Risk |
+    | GET | `/history` | Prediction History |
+    | DELETE | `/history` | Clear History |
 
-    ---
-    Built by **Shivang Kathait** · shivangkathait@gmail.com
-    """)
+    <br><hr>
+
+    <div style="text-align:center; font-size:15px; color:#6b7280;">
+        © 2026 <b>Shivang Kathait</b><br><br>
+
+        📧
+        <a href="mailto:shivangkathait@gmail.com">
+            shivangkathait@gmail.com
+        </a>
+
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+
+        💻
+        <a href="https://github.com/Shivangkathait" target="_blank">
+            GitHub
+        </a>
+
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+
+        🌐
+        <a href="https://medical-risk-prediction.streamlit.app" target="_blank">
+            Live Demo
+        </a>
+
+    </div>
+    """, unsafe_allow_html=True)
