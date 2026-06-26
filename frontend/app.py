@@ -273,27 +273,8 @@ elif page == "ℹ️ About":
 
     <br><hr>
 
-    <div style="text-align:center; font-size:15px; color:#6b7280;">
-        © 2026 <b>Shivang Kathait</b><br><br>
-
-        📧
-        <a href="mailto:shivangkathait@gmail.com">
-            shivangkathait@gmail.com
-        </a>
-
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        💻
-        <a href="https://github.com/Shivangkathait" target="_blank">
-            GitHub
-        </a>
-
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        🌐
-        <a href="https://medical-risk-prediction.streamlit.app" target="_blank">
-            Live Demo
-        </a>
-
+    <div style="text-align:center; color:#6b7280;">
+    © 2026 <b>Shivang Kathait</b><br>
+    📧 shivangkathait@gmail.com
     </div>
     """, unsafe_allow_html=True)
